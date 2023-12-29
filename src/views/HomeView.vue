@@ -259,7 +259,7 @@ class AStar {
         this.currentNode.setGridType('grid') 
         this.closeList = this.closeList.filter((n: Grid) => {
           if (this.currentNode) {
-            if(n.id !== this.currentNode.id) {
+            if(n.gId !== this.currentNode.gId) {
               return n
             }
           }
@@ -347,56 +347,47 @@ class AStar {
     if (!isTestMode.value) {
       this.start()
     }
-    // console.log('===>>> openList', this.openList)
   }
 
   findNearNodes(node: Grid) {
-    const nearNode: Grid[] = []
-
-    // 先对所有的节点进行一次过滤，过滤掉已经在openList中的节点和已经在closeList中的节点以及障碍点进行过滤
-    this.allGridsList.forEach((g: Grid) => {
-      if (this.filter(g)) {
-        nearNode.push(g)
-      }
-    })
-
     // 找到相邻的8个点，并加入到 openList 中
-    nearNode.forEach((g: Grid) => {
-      if (Math.abs(g.row - node.row) <=1 && Math.abs(g.column - node.column) <=1) {
-        // 保存父节点，根据父节点可以确定最终路径
-        g.parentGrid = node
-        g.gNum = this.calcGValue(g, node)
-        g.setGValue()
-        g.hNum = this.calcHValue(g)
-        g.setHValue()
-        g.fNum = g.gNum + g.hNum
-        g.setFValue()
+    for(let i = 0; i < this.allGridsList.length; i++) {
+      const g: Grid = this.allGridsList[i]
+
+      if (Math.abs(g.row - node.row) <=1 && Math.abs(g.column - node.column) <=1 && !this.isInCloseList(g)) {
         // 如果这个点已经在 openList 中，则判断是否 g 值更小，如果更小则更新 g 值
-        if (this.isInCloseList(g)) {
-          g.parentGrid = node
-          const oldGNum = g.gNum
+        if (this.isInOpenList(g)) {
+          const oldGNum = g.gNum as number
           const newGNum = this.calcGValue(g, node)
           if (newGNum < oldGNum) {
             g.gNum = newGNum
             g.setGValue()
-            g.fNum = g.gNum + g.hNum
+            g.fNum = g.gNum + (g.hNum as number)
             g.setFValue()
             g.parentGrid = node
           }
         } else {
+          // 保存父节点，根据父节点可以确定最终路径
+          g.parentGrid = node
+          g.gNum = this.calcGValue(g, node)
+          g.setGValue()
+          g.hNum = this.calcHValue(g)
+          g.setHValue()
+          g.fNum = g.gNum + g.hNum
+          g.setFValue()
           // 如果这个点不在 openList 中，则加入到 openList 中
           this.openList.push(g)
         }
       }
-    })
+    }
   }
 
   isInOpenList(grid: Grid) {
-    return this.openList.some((g: Grid) => g.row === grid.row && g.column === grid.column)
+    return this.openList.some((g: Grid) => g.gId === grid.gId)
   }
 
   isInCloseList(grid: Grid) {
-    return this.closeList.some((g: Grid) => g.row === grid.row && g.column === grid.column)
+    return this.closeList.some((g: Grid) => g.gId === grid.gId)
   }
 
   calcGValue(currGrid: Grid, pGrid: Grid) {
@@ -415,16 +406,6 @@ class AStar {
     const absColumn = Math.abs(currGrid.column - this.endNode[1])
 
     return absRow * 10 + absColumn * 10
-  }
-
-  filter(node: Grid) {
-    for (let i = 0; i< this.closeList.length; i++) {
-      if (node.id === this.closeList[i].id) {
-        return false
-      }
-    }
-
-    return true
   }
 
   sortValue() {
