@@ -371,9 +371,32 @@ class AStar {
         g.setHValue()
         g.fNum = g.gNum + g.hNum
         g.setFValue()
-        this.openList.push(g)
+        // 如果这个点已经在 openList 中，则判断是否 g 值更小，如果更小则更新 g 值
+        if (this.isInCloseList(g)) {
+          g.parentGrid = node
+          const oldGNum = g.gNum
+          const newGNum = this.calcGValue(g, node)
+          if (newGNum < oldGNum) {
+            g.gNum = newGNum
+            g.setGValue()
+            g.fNum = g.gNum + g.hNum
+            g.setFValue()
+            g.parentGrid = node
+          }
+        } else {
+          // 如果这个点不在 openList 中，则加入到 openList 中
+          this.openList.push(g)
+        }
       }
     })
+  }
+
+  isInOpenList(grid: Grid) {
+    return this.openList.some((g: Grid) => g.row === grid.row && g.column === grid.column)
+  }
+
+  isInCloseList(grid: Grid) {
+    return this.closeList.some((g: Grid) => g.row === grid.row && g.column === grid.column)
   }
 
   calcGValue(currGrid: Grid, pGrid: Grid) {
@@ -397,12 +420,6 @@ class AStar {
   filter(node: Grid) {
     for (let i = 0; i< this.closeList.length; i++) {
       if (node.id === this.closeList[i].id) {
-        return false
-      }
-    }
-
-    for (let i = 0; i< this.openList.length; i++) {
-      if (node.id === this.openList[i].id) {
         return false
       }
     }
