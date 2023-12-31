@@ -46,7 +46,7 @@ const fillColorConfig: { [key: string]: { fill: string; desc: string }} = {
   },
   minFValueColor: {
     fill: '#4dabf7',
-    desc: '当前一轮F值计算值最小的网格'
+    desc: '当前一轮计算结果中F值最小的网格'
   }
 }
 
@@ -226,9 +226,7 @@ class AStar {
   currentNode?: Grid
   allGridsList: Grid[] = []
   openList: Grid[] = []
-  closeList: Grid[] = [] // 包含所有已经搜索过的点和障碍点的集合
-  startGrid: Grid | undefined
-  endGrid: Grid | undefined
+  closeList: Grid[] = [] // 包含所有已经搜索过的点和障碍点的集
   pathList: Grid[] = [] // 最终轨迹路线
 
   constructor({ rowSize, columnSize, gridSize }: AStarOpts) {
@@ -307,13 +305,11 @@ class AStar {
         if (i===this.startNode[0] && j === this.startNode[1]) {
           this.openList.push(grid)
           grid.setGridType('start')
-          this.startGrid = grid
         }
 
         // 开始节点
         if (i===this.endNode[0] && j === this.endNode[1]) {
           grid.setGridType('end')
-          this.endGrid = grid
         }
       }
     }
@@ -428,17 +424,13 @@ class AStar {
   showPath() {
     const lastGrid = this.closeList.pop() as Grid
 
-    this.pathList.unshift(this.endGrid as Grid)
     this.pathList.unshift(lastGrid)
 
     this.findParent(lastGrid?.parentGrid as Grid)
 
-    this.pathList.push(this.startGrid as Grid)
     const pathPoints: Array<number[]> = []
     this.pathList.forEach((pathGrid: Grid) => {
-      if (!['start', 'end'].includes(pathGrid.gridType)) {
-        pathGrid.setGridStyle(fillColorConfig.pathColor.fill)
-      }
+      pathGrid.setGridStyle(fillColorConfig.pathColor.fill)
       pathPoints.push([pathGrid.x + pathGrid.width / 2, pathGrid.y + pathGrid.height / 2])
     })
 
