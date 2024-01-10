@@ -46,7 +46,7 @@ const fillColorConfig: { [key: string]: { fill: string; desc: string }} = {
   },
   minFValueColor: {
     fill: '#4dabf7',
-    desc: '当前一轮计算结果中F值最小的网格'
+    desc: '已经探索过的网格'
   }
 }
 
